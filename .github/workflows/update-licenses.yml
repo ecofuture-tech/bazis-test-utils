@@ -9,5 +9,5 @@ on:
       - 'pyproject.toml'
 
 jobs:
-  pre-release:
+  update-licenses:
     uses: ecofuture-tech/.github/.github/workflows/reusable-update-licenses.yml@main
