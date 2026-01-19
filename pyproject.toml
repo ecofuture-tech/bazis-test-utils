@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=80", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages.find = { include = ["bazis_test_utils.*"] }
+include-package-data = true
+
+[tool.setuptools_scm]
+version_file = "bazis_test_utils/_version.py"
+version_scheme = "no-guess-dev"
+local_scheme = "no-local-version"
+
+[project]
+name = "bazis-test-utils"
+urls = { Home = "https://github.com/ecofuture-tech/bazis-test-utils" }
+authors = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
+maintainers = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
+license = {file = "LICENSE"}
+dynamic = ["version"]
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pytest",
+    "django",
+    "pytest-django",
+    "pytest-mock",
+    "requests",
+    "requests-toolbelt",
+    "requests-mock",
+    "httpx<=0.27.0",
+    "fastapi",
+    "factory_boy",
+    "uvicorn[standard]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pip-licenses",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = ["migrations", ".venv", "build", "dist", "docs", "__pycache__"]
+extend-include = ["*.pyi"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "B",    # bugbear
+    "UP",   # pyupgrade
+    "C90",  # mccabe
+]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.isort]
+section-order = [
+    "future",
+    "standard-library",
+    "django",
+    "fastapi",
+    "starlette",
+    "pydantic",
+    "third-party",
+    "bazis",
+    "first-party",
+    "local-folder"
+]
+sections = { "django" = ["django"], "fastapi" = ["fastapi"], "starlette" = ["starlette"], "pydantic" = ["pydantic"], "bazis" = ["bazis"] }
+lines-after-imports = 2

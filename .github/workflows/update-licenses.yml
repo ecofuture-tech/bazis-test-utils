@@ -1,0 +1,13 @@
+name: Update Licenses
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+
+jobs:
+  pre-release:
+    uses: ecofuture-tech/.github/workflows/reusable-update-licenses.yml@main
