@@ -10,4 +10,4 @@ on:
 
 jobs:
   pre-release:
-    uses: ecofuture-tech/.github/workflows/reusable-update-licenses.yml@main
+    uses: ecofuture-tech/.github/.github/workflows/reusable-update-licenses.yml@main
