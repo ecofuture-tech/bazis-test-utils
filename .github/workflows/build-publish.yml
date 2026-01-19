@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     uses: ecofuture-tech/.github/.github/workflows/reusable-build-publish.yml@main

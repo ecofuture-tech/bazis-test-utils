@@ -13,6 +13,8 @@ local_scheme = "no-local-version"
 
 [project]
 name = "bazis-test-utils"
+description = "A utility package for testing in the Bazis ecosystem — a framework based on Django + FastAPI + Pydantic."
+keywords = ["django", "fastapi", "pydantic", "framework", "jsonapi", "bazis", "test-utilities"]
 urls = { Home = "https://github.com/ecofuture-tech/bazis-test-utils" }
 authors = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
 maintainers = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
@@ -21,9 +23,17 @@ dynamic = ["version"]
 readme = "README.md"
 requires-python = ">=3.12"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Framework :: Django",
+    "Framework :: FastAPI",
+    "Framework :: Bazis",
 ]
 dependencies = [
     "pytest",
