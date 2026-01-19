@@ -8,6 +8,9 @@ on:
       - '**.py'
       - 'pyproject.toml'
 
+permissions:
+  contents: write
+
 jobs:
   update-licenses:
     uses: ecofuture-tech/.github/.github/workflows/reusable-update-licenses.yml@main
