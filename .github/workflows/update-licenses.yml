@@ -15,4 +15,4 @@ jobs:
   update-licenses:
     uses: ecofuture-tech/.github/.github/workflows/reusable-update-licenses.yml@main
     secrets:
-      WORKFLOW_TOKEN: ${{ secrets.WORKFLOW_LICENSE_TOKEN }}
+      WORKFLOW_LICENSE_TOKEN: ${{ secrets.WORKFLOW_LICENSE_TOKEN }}

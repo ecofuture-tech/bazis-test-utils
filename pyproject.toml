@@ -99,3 +99,4 @@ section-order = [
 ]
 sections = { "django" = ["django"], "fastapi" = ["fastapi"], "starlette" = ["starlette"], "pydantic" = ["pydantic"], "bazis" = ["bazis"] }
 lines-after-imports = 2
+
