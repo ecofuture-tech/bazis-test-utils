@@ -18,7 +18,7 @@ keywords = ["django", "fastapi", "pydantic", "framework", "jsonapi", "bazis", "t
 urls = { Home = "https://github.com/ecofuture-tech/bazis-test-utils" }
 authors = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
 maintainers = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
-license = {file = "LICENSE"}
+license = "Apache-2.0"
 dynamic = ["version"]
 readme = "README.md"
 requires-python = ">=3.12"
