@@ -34,16 +34,16 @@ classifiers = [
     "Framework :: FastAPI",
 ]
 dependencies = [
-    "pytest",
     "django",
+    "fastapi",
+    "factory_boy",
+    "httpx<=0.27.0",
+    "pytest",
     "pytest-django",
     "pytest-mock",
     "requests",
     "requests-toolbelt",
     "requests-mock",
-    "httpx<=0.27.0",
-    "fastapi",
-    "factory_boy",
     "uvicorn[standard]",
 ]
 
