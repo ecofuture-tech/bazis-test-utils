@@ -33,7 +33,6 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Framework :: Django",
     "Framework :: FastAPI",
-    "Framework :: Bazis",
 ]
 dependencies = [
     "pytest",
