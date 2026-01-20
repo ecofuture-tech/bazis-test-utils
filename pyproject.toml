@@ -50,7 +50,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff",
-    "pip-licenses",
 ]
 
 [tool.ruff]
