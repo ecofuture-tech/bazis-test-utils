@@ -12,7 +12,7 @@ This document contains the licenses of all third-party dependencies used in this
 | annotated-types    | 0.7.0               | MIT License                          |
 | anyio              | 4.12.1              | MIT                                  |
 | asgiref            | 3.11.0              | BSD License                          |
-| bazis-test-utils   | 0.0.1rc0.post1.dev1 | Apache Software License              |
+| bazis-test-utils   | 0.0.2rc0.post1.dev5 | Apache Software License              |
 | certifi            | 2026.1.4            | Mozilla Public License 2.0 (MPL 2.0) |
 | charset-normalizer | 3.4.4               | MIT                                  |
 | click              | 8.3.1               | BSD-3-Clause                         |
