@@ -1,6 +1,6 @@
 # bazis-test-utils
 
-[![PyPI version](https://badge.fury.io/py/bazis-test-utils.svg)](https://badge.fury.io/py/bazis-test-utils)
+[![PyPI version](https://img.shields.io/pypi/v/bazis-test-utils.svg)](https://pypi.org/project/bazis-test-utils/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/bazis-test-utils.svg)](https://pypi.org/project/bazis-test-utils/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
