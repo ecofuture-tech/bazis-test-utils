@@ -44,4 +44,3 @@ This document contains the licenses of all third-party dependencies used in this
 | uvloop             | 0.22.1   | Apache Software License; MIT License |
 | watchfiles         | 1.1.1    | MIT License                          |
 | websockets         | 16.0     | BSD-3-Clause                         |
-
