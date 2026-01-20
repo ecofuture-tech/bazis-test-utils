@@ -14,7 +14,7 @@ local_scheme = "no-local-version"
 [project]
 name = "bazis-test-utils"
 description = "A utility package for testing in the Bazis ecosystem — a framework based on Django + FastAPI + Pydantic."
-keywords = ["django", "fastapi", "pydantic", "framework", "jsonapi", "bazis", "test-utilities"]
+keywords = ["bazis", "django", "fastapi", "pydantic", "framework", "jsonapi", "test-utilities"]
 urls = { Home = "https://github.com/ecofuture-tech/bazis-test-utils" }
 authors = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
 maintainers = [{name = "Ilya Kharyn", email = "ilya.tt07@gmail.com"}]
