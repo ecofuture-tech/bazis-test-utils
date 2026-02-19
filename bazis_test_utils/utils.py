@@ -27,7 +27,7 @@ def get_api_client(app, token: str = None):
             if token:
                 self.headers['Authorization'] = f'Bearer {token}'
 
-            self.client = TestClient(app)
+            self.client = TestClient(app, client=("127.0.0.1", 50000))
 
         def get(self, url: str, params: dict = None, headers: dict = None):
             return self.client.get(
