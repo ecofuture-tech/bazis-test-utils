@@ -1,0 +1,68 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uvx ruff check bazis_test_utils
+
+  build:
+    name: build (python ${{ matrix.python }}, ${{ matrix.resolution }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.13', '3.14']
+        resolution: [highest]
+        include:
+          # the lowest versions allowed by pyproject.toml
+          - python: '3.12'
+            resolution: lowest-direct
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+          activate-environment: true
+      - name: Install the package
+        run: uv pip install --resolution ${{ matrix.resolution }} .
+      - name: Import the modules
+        # the models and factories need configured Django settings
+        run: |
+          python - <<'PY'
+          import django
+          from django.conf import settings
+
+          settings.configure(INSTALLED_APPS=[])
+          django.setup()
+
+          import bazis_test_utils.factories_abstract
+          import bazis_test_utils.models_abstract
+          from bazis_test_utils.utils import get_api_client
+          from fastapi import FastAPI
+
+          client = get_api_client(FastAPI(), token='token')
+          assert client.headers['Authorization'] == 'Bearer token'
+          assert client.get('/missing').status_code == 404
+          PY
+      - name: Build the distribution
+        run: uv build
