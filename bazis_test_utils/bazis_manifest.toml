@@ -1,0 +1,51 @@
+# What the package is for and how to use it, for tools and AI agents (see AGENTS.md).
+# The `import` paths are verified with bazis.core.introspect.validate_manifest.
+
+[package]
+name = "bazis-test-utils"
+summary = "test helpers for Bazis: an API test client, sample models and factories"
+solves = [
+    "call the API of a Bazis app in pytest (JSON:API content type, bearer token)",
+    "sample parent, child, dependent and extended entities with factories",
+]
+requires = []
+pairs_well = ["bazis"]
+
+[[extension_points]]
+name = "get_api_client"
+import = "bazis_test_utils.utils.get_api_client"
+use_when = "a test client of the FastAPI app, optionally with a bearer token"
+
+[[extension_points]]
+name = "ParentEntityBase"
+import = "bazis_test_utils.models_abstract.ParentEntityBase"
+use_when = "the parent model of a sample app (with ChildEntityBase, DependentEntityBase, ExtendedEntityBase)"
+
+[[extension_points]]
+name = "ChildEntityBase"
+import = "bazis_test_utils.models_abstract.ChildEntityBase"
+use_when = "the child model of a sample app (many-to-many from the parent)"
+
+[[extension_points]]
+name = "DependentEntityBase"
+import = "bazis_test_utils.models_abstract.DependentEntityBase"
+use_when = "the dependent model of a sample app (foreign key to the parent)"
+
+[[extension_points]]
+name = "ExtendedEntityBase"
+import = "bazis_test_utils.models_abstract.ExtendedEntityBase"
+use_when = "the extended model of a sample app (one-to-one to the parent)"
+
+[[extension_points]]
+name = "ParentEntityFactoryAbstract"
+import = "bazis_test_utils.factories_abstract.ParentEntityFactoryAbstract"
+use_when = "the factory of the parent model (with the other *FactoryAbstract classes)"
+
+[[pitfalls]]
+text = "the API client takes the JSON body as json_data=, not json="
+
+[[pitfalls]]
+text = "tests that call the API need @pytest.mark.django_db(transaction=True)"
+
+[[pitfalls]]
+text = "ParentEntityFactoryAbstract needs tests.factories.DependentEntityFactory and tests.factories.ExtendedEntityFactory"
