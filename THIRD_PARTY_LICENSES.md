@@ -5,7 +5,7 @@ This document contains the licenses of all third-party dependencies used in this
 | Name              | Version   | License                              |
 |-------------------|-----------|--------------------------------------|
 | Django            | 6.1.2     | BSD-3-Clause                         |
-| Faker             | 40.41.0   | MIT License                          |
+| Faker             | 40.42.0   | MIT License                          |
 | PyYAML            | 6.0.3     | MIT License                          |
 | Pygments          | 2.21.0    | BSD-2-Clause                         |
 | annotated-doc     | 0.0.5     | MIT                                  |
