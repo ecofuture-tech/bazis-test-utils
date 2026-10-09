@@ -26,10 +26,19 @@ the package):
 kept by `--reuse-db` (Django runs `migrate` on it): the fixture is for a test that changes
 the declared rows itself.
 
+- the database connections opened by other threads than the one of the tests, such as the
+  worker threads of the endpoints called by `get_api_client` (a `TestClient` starts new
+  ones for every request), are closed once their thread has ended (when another thread
+  opens one), once each test is over and before the test database is destroyed. A
+  connection is kept by its thread (`CONN_MAX_AGE` of Bazis) and was left to the garbage
+  collector when the thread ended: a `ResourceWarning` of the driver, and open sessions
+  that kept the test database from being dropped.
+
 Nothing of Django is imported before it is needed: the plugin is loaded in every pytest
 session where the package is installed.
 """
 
+import threading
 from importlib.util import find_spec
 
 import pytest
@@ -42,6 +51,10 @@ DECLARATIONS = (
 )
 
 _TRIGGERS_INSTALLED = pytest.StashKey[bool]()
+
+#: (thread, connection): the connections opened by other threads than the one of the tests
+_thread_connections = []
+_thread_connections_lock = threading.Lock()
 
 
 def apply_declarations(using: str = 'default') -> list[str]:
@@ -84,10 +97,20 @@ def bazis_declared(db) -> list[str]:
 @pytest.hookimpl(wrapper=True)
 def pytest_fixture_setup(fixturedef, request):
     result = yield
-    if fixturedef.argname == 'django_db_setup' and not request.config.stash.get(_TRIGGERS_INSTALLED, False):
-        request.config.stash[_TRIGGERS_INSTALLED] = True
-        _install_triggers(request)
+    if fixturedef.argname == 'django_db_setup':
+        if not request.config.stash.get(_TRIGGERS_INSTALLED, False):
+            request.config.stash[_TRIGGERS_INSTALLED] = True
+            _install_triggers(request)
+            _track_thread_connections()
+        # before the test database is destroyed (a finalizer added now runs before the
+        # teardown of the fixture)
+        fixturedef.addfinalizer(_close_thread_connections)
     return result
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_teardown(item, nextitem):
+    _close_thread_connections()
 
 
 def _install_triggers(request) -> None:
@@ -99,3 +122,45 @@ def _install_triggers(request) -> None:
 
     with request.getfixturevalue('django_db_blocker').unblock():
         call_command('pgtrigger', 'install')
+
+
+def _track_thread_connections() -> None:
+    """
+    Records the connections that the other threads than this one open from now on; the
+    ones of the threads that have ended are closed at once, so that a test with many
+    requests does not keep a session per request.
+    """
+    from django.db.backends.signals import connection_created
+
+    ident = threading.get_ident()
+
+    def opened(sender, connection, **kwargs):
+        if threading.get_ident() == ident:
+            return
+        with _thread_connections_lock:
+            ended = [it for it in _thread_connections if not it[0].is_alive()]
+            _thread_connections[:] = [it for it in _thread_connections if it not in ended]
+            _thread_connections.append((threading.current_thread(), connection))
+        _close([it[1] for it in ended])
+
+    connection_created.connect(opened, weak=False, dispatch_uid='bazis_test_utils.plugin')
+
+
+def _close_thread_connections() -> None:
+    """
+    Closes the recorded connections of the other threads: their tests are over, the
+    threads are done with them (a thread that uses its connection again reconnects).
+    """
+    with _thread_connections_lock:
+        opened = [it[1] for it in _thread_connections]
+        _thread_connections.clear()
+    _close(opened)
+
+
+def _close(connections) -> None:
+    for connection in connections:
+        connection.inc_thread_sharing()
+        try:
+            connection.close()
+        finally:
+            connection.dec_thread_sharing()

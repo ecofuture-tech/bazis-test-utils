@@ -136,3 +136,63 @@ def test_the_declarations_of_the_installed_packages(project):
         """
     )
     project.runpytest_subprocess('-p', 'no:cacheprovider').assert_outcomes(passed=2)
+
+
+def test_the_connections_of_other_threads_are_closed(project):
+    """
+    The endpoints of the API client run in worker threads with database connections of
+    their own; every request of a `TestClient` outside a `with` block starts new threads.
+    Their connections are closed once the test is over, not left to the garbage collector
+    (a ResourceWarning of the driver, and sessions that keep the test database from being
+    dropped); those of the threads that have ended already when another one is opened.
+    """
+    # a database in a file: Django does not close the connections of one in memory
+    project.makepyfile(
+        project_settings=SETTINGS.replace(
+            "'NAME': ':memory:'", "'NAME': 'db.sqlite3', 'TEST': {'NAME': 'test.sqlite3'}"
+        )
+    )
+    project.makepyfile(
+        """
+        import threading
+
+        import pytest
+        from django.db.backends.signals import connection_created
+        from fastapi import FastAPI
+
+        from bazis_test_utils.utils import get_api_client
+
+        app = FastAPI()
+        OPENED = []
+
+
+        def opened(sender, connection, **kwargs):
+            if threading.current_thread() is not threading.main_thread():
+                OPENED.append(connection)
+
+
+        connection_created.connect(opened, weak=False)
+
+
+        @app.get('/')
+        def users():
+            from django.contrib.auth.models import User
+
+            return {'users': User.objects.count()}
+
+
+        @pytest.mark.django_db(transaction=True)
+        def test_requests():
+            client = get_api_client(app)
+            for _ in range(20):
+                assert client.get('/').json() == {'users': 0}
+            # a connection per request; those of the ended threads are closed already
+            assert len(OPENED) == 20
+            assert sum(it.connection is not None for it in OPENED) <= 2
+
+
+        def test_closed_after_the_test():
+            assert OPENED and all(it.connection is None for it in OPENED)
+        """
+    )
+    project.runpytest_subprocess('-p', 'no:cacheprovider').assert_outcomes(passed=2)
