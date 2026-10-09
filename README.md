@@ -245,6 +245,25 @@ The typical workflow in Bazis packages:
 3. Register factories in `conftest.py` for use across all tests
 4. Use generated fixtures in integration and unit tests
 
+### The pytest plugin
+
+Installed, the package is a pytest plugin (entry point `pytest11` `bazis`):
+
+- the triggers of `django-pgtrigger` are installed in the test database once it is set up,
+  if `pgtrigger` is in `INSTALLED_APPS` (a conftest no longer overrides `django_db_setup`
+  for them);
+- the roles of bazis-permit (`roles.py`) and the workflows of bazis-statusy
+  (`workflow.py`) declared in the code are applied by `migrate` and `flush`, so the test
+  database has them; `bazis_test_utils.plugin.apply_declarations()` applies them again and
+  forgets the cached permissions and content types, and the fixture `bazis_declared`
+  calls it, for a test that changes the declared rows itself (`--reuse-db` still runs
+  `migrate`, which applies them):
+
+```python
+def test_the_client_sees_his_tickets(bazis_declared, client_user):
+    ...
+```
+
 ## Contributing
 
 Contributions are welcome! Here's how you can help:

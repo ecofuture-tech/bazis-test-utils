@@ -16,13 +16,7 @@ DJANGO_SETTINGS_MODULE=sample.settings
 
 ```python
 # tests/conftest.py
-from django.core.management import call_command
 import pytest
-
-@pytest.fixture(scope='session')
-def django_db_setup(django_db_setup, django_db_blocker):
-    with django_db_blocker.unblock():
-        call_command('pgtrigger', 'install')   # the triggers of the Bazis models
 
 @pytest.fixture
 def sample_app():
@@ -31,6 +25,27 @@ def sample_app():
 ```
 
 Run with the `BS_*` environment of a test database: `cd sample && python -m pytest ../tests`.
+
+## The pytest plugin
+
+The package is a pytest plugin (entry point `pytest11` `bazis`, active once it is
+installed):
+
+- the triggers of `django-pgtrigger` (the Bazis models need them) are installed in the
+  test database once it is set up, if `pgtrigger` is in `INSTALLED_APPS`; a
+  `django_db_setup` of a conftest that installs them too (before 2.5) still works;
+- the declarations of the code, the roles of bazis-permit (`roles.py`) and the workflows
+  of bazis-statusy (`workflow.py`), are applied by `migrate` and `flush` (`post_migrate`),
+  so the migrated test database has them, also after a test with `transaction=True`: no
+  fixture creates the roles, statuses or transits. `bazis_test_utils.plugin.apply_declarations(using='default')`
+  applies them again with the functions `migrate` calls and forgets the cached
+  permissions and content types; the fixture `bazis_declared` (needs `db`) calls it and
+  gives the changes. Use it only in a test that changes the declared rows itself: with
+  `--reuse-db` Django still runs `migrate` on the kept database, which applies them.
+
+```python
+def test_client_sees_his_tickets(bazis_declared, client_user): ...
+```
 
 ## API client
 

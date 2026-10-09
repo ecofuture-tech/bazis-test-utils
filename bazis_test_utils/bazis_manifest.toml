@@ -7,6 +7,7 @@ summary = "test helpers for Bazis: an API test client, sample models and factori
 solves = [
     "call the API of a Bazis app in pytest (JSON:API content type, bearer token)",
     "sample parent, child, dependent and extended entities with factories",
+    "the test database of a Bazis project: the triggers of pgtrigger and the declared roles and workflows (a pytest plugin)",
 ]
 requires = []
 pairs_well = ["bazis"]
@@ -40,6 +41,14 @@ use_when = "the extended model of a sample app (one-to-one to the parent)"
 name = "ParentEntityFactoryAbstract"
 import = "bazis_test_utils.factories_abstract.ParentEntityFactoryAbstract"
 use_when = "the factory of the parent model (with the other *FactoryAbstract classes)"
+
+[[extension_points]]
+name = "apply_declarations"
+import = "bazis_test_utils.plugin.apply_declarations"
+use_when = "a test applies the roles.py and workflow.py declarations again, as migrate does (the fixture bazis_declared calls it)"
+
+[[pitfalls]]
+text = "the declared roles and workflows are in the test database because migrate (also with --reuse-db) and flush apply them: request the fixture bazis_declared only in a test that changes the declared rows itself"
 
 [[pitfalls]]
 text = "the API client takes the JSON body as json_data=, not json="

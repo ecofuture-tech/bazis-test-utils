@@ -1,19 +1,23 @@
 # bazis-test-utils
 
-Test helpers shared by the Bazis packages: abstract test models, `factory_boy` factories
-and an API test client (`bazis_test_utils/utils.py`). Every Bazis package depends on it
-through its `test` extra, so a change here affects all their test suites.
+Test helpers shared by the Bazis packages: abstract test models, `factory_boy` factories,
+an API test client (`bazis_test_utils/utils.py`) and a pytest plugin
+(`bazis_test_utils/plugin.py`, entry point `pytest11`: the pgtrigger triggers of the test
+database, `apply_declarations` and the fixture `bazis_declared`). Every Bazis package
+depends on it through its `test` extra and loads the plugin, so a change here affects all
+their test suites. The plugin imports nothing of Django or Bazis at import time.
 
 ## Checks
 
 ```bash
-ruff check bazis_test_utils
+ruff check bazis_test_utils tests
+python -m pytest tests
 ```
 
-The package has no tests of its own; CI imports the modules, exercises `get_api_client`
-on Python 3.12–3.14 with the highest and the lowest allowed dependency versions, and
-builds the distribution. Changes should also be checked against the test suites of the
-Bazis packages.
+`tests/` runs the plugin in pytester subprocesses (Django with SQLite, no Bazis package).
+CI also imports the modules and exercises `get_api_client` on Python 3.12–3.14 with the
+highest and the lowest allowed dependency versions, and builds the distribution. Changes
+should also be checked against the test suites of the Bazis packages.
 
 ## Releasing
 
