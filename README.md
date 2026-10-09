@@ -256,7 +256,8 @@ Installed, the package is a pytest plugin (entry point `pytest11` `bazis`):
   (`workflow.py`) declared in the code are applied by `migrate` and `flush`, so the test
   database has them; `bazis_test_utils.plugin.apply_declarations()` applies them again and
   forgets the cached permissions and content types, and the fixture `bazis_declared`
-  calls it (a database reused with `--reuse-db`, or a test that changed them):
+  calls it, for a test that changes the declared rows itself (`--reuse-db` still runs
+  `migrate`, which applies them):
 
 ```python
 def test_the_client_sees_his_tickets(bazis_declared, client_user):

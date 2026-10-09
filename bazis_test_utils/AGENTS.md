@@ -40,8 +40,8 @@ installed):
   fixture creates the roles, statuses or transits. `bazis_test_utils.plugin.apply_declarations(using='default')`
   applies them again with the functions `migrate` calls and forgets the cached
   permissions and content types; the fixture `bazis_declared` (needs `db`) calls it and
-  gives the changes. Use it with `--reuse-db` (no `migrate`) or in a test that changed
-  them in the database.
+  gives the changes. Use it only in a test that changes the declared rows itself: with
+  `--reuse-db` Django still runs `migrate` on the kept database, which applies them.
 
 ```python
 def test_client_sees_his_tickets(bazis_declared, client_user): ...

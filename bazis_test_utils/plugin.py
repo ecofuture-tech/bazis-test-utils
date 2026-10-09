@@ -22,8 +22,9 @@ the package):
   code, the roles of bazis-permit (`roles.py`) and the workflows of bazis-statusy
   (`workflow.py`), as `migrate` does, and forget the cached permissions and content types.
 
-`migrate` and `flush` already apply the declarations (`post_migrate`): the fixture is for
-a database reused with `--reuse-db`, or a test that changes them in the database.
+`migrate` and `flush` already apply the declarations (`post_migrate`), also on a database
+kept by `--reuse-db` (Django runs `migrate` on it): the fixture is for a test that changes
+the declared rows itself.
 
 Nothing of Django is imported before it is needed: the plugin is loaded in every pytest
 session where the package is installed.
