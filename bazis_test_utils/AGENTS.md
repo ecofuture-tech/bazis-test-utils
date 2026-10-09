@@ -41,7 +41,13 @@ installed):
   applies them again with the functions `migrate` calls and forgets the cached
   permissions and content types; the fixture `bazis_declared` (needs `db`) calls it and
   gives the changes. Use it only in a test that changes the declared rows itself: with
-  `--reuse-db` Django still runs `migrate` on the kept database, which applies them.
+  `--reuse-db` Django still runs `migrate` on the kept database, which applies them;
+- the database connections of other threads than the one of the tests (the worker
+  threads of the endpoints: a `TestClient` outside a `with` block starts new ones for
+  every request) are closed when their thread has ended, after each test and before the
+  test database is destroyed, so the test database is dropped at the end of the session
+  and psycopg reports no unclosed connection (`ResourceWarning`). A conftest needs no
+  `CONN_MAX_AGE` override nor `connections.close_all()` for it.
 
 ```python
 def test_client_sees_his_tickets(bazis_declared, client_user): ...

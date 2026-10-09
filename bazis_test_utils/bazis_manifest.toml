@@ -7,7 +7,7 @@ summary = "test helpers for Bazis: an API test client, sample models and factori
 solves = [
     "call the API of a Bazis app in pytest (JSON:API content type, bearer token)",
     "sample parent, child, dependent and extended entities with factories",
-    "the test database of a Bazis project: the triggers of pgtrigger and the declared roles and workflows (a pytest plugin)",
+    "the test database of a Bazis project: the triggers of pgtrigger, the declared roles and workflows, the connections of the worker threads closed after each test (a pytest plugin)",
 ]
 requires = []
 pairs_well = ["bazis"]
