@@ -48,6 +48,10 @@ dependencies = [
     "uvicorn[standard]>=0.30",
 ]
 
+[project.entry-points.pytest11]
+# apply_declarations, the fixture bazis_declared and the triggers of the test database
+bazis = "bazis_test_utils.plugin"
+
 [project.optional-dependencies]
 dev = [
     "ruff",
