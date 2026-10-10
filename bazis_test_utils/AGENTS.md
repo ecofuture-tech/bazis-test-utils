@@ -34,10 +34,11 @@ installed):
 - the triggers of `django-pgtrigger` (the Bazis models need them) are installed in the
   test database once it is set up, if `pgtrigger` is in `INSTALLED_APPS`; a
   `django_db_setup` of a conftest that installs them too (before 2.5) still works;
-- the declarations of the code, the roles of bazis-permit (`roles.py`) and the workflows
-  of bazis-statusy (`workflow.py`), are applied by `migrate` and `flush` (`post_migrate`),
-  so the migrated test database has them, also after a test with `transaction=True`: no
-  fixture creates the roles, statuses or transits. `bazis_test_utils.plugin.apply_declarations(using='default')`
+- the declarations of the code, the roles of bazis-permit (`roles.py`), the workflows
+  of bazis-statusy (`workflow.py`) and the schedules of bazis-bg (`schedules.py`), are
+  applied by `migrate` and `flush` (`post_migrate`), so the migrated test database has
+  them, also after a test with `transaction=True`: no fixture creates the roles,
+  statuses, transits or periodic tasks. `bazis_test_utils.plugin.apply_declarations(using='default')`
   applies them again with the functions `migrate` calls and forgets the cached
   permissions and content types; the fixture `bazis_declared` (needs `db`) calls it and
   gives the changes. Use it only in a test that changes the declared rows itself: with

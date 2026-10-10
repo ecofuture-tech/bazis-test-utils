@@ -19,8 +19,9 @@ the package):
 - the triggers of `django-pgtrigger` are installed in the test database once it is set up
   (`django_db_setup`, also when a conftest overrides it), if `pgtrigger` is installed;
 - `apply_declarations()` and the fixture `bazis_declared` apply the declarations of the
-  code, the roles of bazis-permit (`roles.py`) and the workflows of bazis-statusy
-  (`workflow.py`), as `migrate` does, and forget the cached permissions and content types.
+  code, the roles of bazis-permit (`roles.py`), the workflows of bazis-statusy
+  (`workflow.py`) and the schedules of bazis-bg (`schedules.py`), as `migrate` does, and
+  forget the cached permissions and content types.
 
 `migrate` and `flush` already apply the declarations (`post_migrate`), also on a database
 kept by `--reuse-db` (Django runs `migrate` on it): the fixture is for a test that changes
@@ -48,6 +49,7 @@ import pytest
 DECLARATIONS = (
     ('bazis.contrib.permit', 'bazis.contrib.permit.declare'),
     ('bazis.contrib.statusy', 'bazis.contrib.statusy.declare'),
+    ('bazis.contrib.bg', 'bazis.contrib.bg.declare'),
 )
 
 _TRIGGERS_INSTALLED = pytest.StashKey[bool]()
@@ -60,7 +62,7 @@ _thread_connections_lock = threading.Lock()
 def apply_declarations(using: str = 'default') -> list[str]:
     """
     Applies the declarations of the installed Bazis packages that have them (bazis-permit
-    2.9, bazis-statusy 2.9) with their own function, the one `migrate` calls, then forgets
+    2.9, bazis-statusy 2.9, bazis-bg 2.6) with their own function, the one `migrate` calls, then forgets
     the cached permissions and content types. Returns the changes.
     """
     from importlib import import_module
