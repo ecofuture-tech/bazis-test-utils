@@ -35,6 +35,11 @@ the declared rows itself.
   collector when the thread ended: a `ResourceWarning` of the driver, and open sessions
   that kept the test database from being dropped.
 
+- the counts of the request rate limits of Bazis (`bazis.core.throttle`, kept in Redis
+  between the runs) are reset before each test (`throttle_reset()` of the core, Bazis 2.16,
+  when `bazis.core` is installed), so a test never inherits a 429 from the tests run before
+  it; within a test the throttles count as usual.
+
 Nothing of Django is imported before it is needed: the plugin is loaded in every pytest
 session where the package is installed.
 """
@@ -111,8 +116,29 @@ def pytest_fixture_setup(fixturedef, request):
 
 
 @pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    _throttle_reset()
+
+
+@pytest.hookimpl(tryfirst=True)
 def pytest_runtest_teardown(item, nextitem):
     _close_thread_connections()
+
+
+def _throttle_reset() -> None:
+    """
+    `throttle_reset()` of the core, in a configured Bazis project with a core that has it.
+    """
+    from django.apps import apps
+
+    if not apps.ready or not apps.is_installed('bazis.core'):
+        return
+    try:
+        from bazis.core.throttle import throttle_reset
+    except ImportError:
+        # Bazis < 2.16: no throttles
+        return
+    throttle_reset()
 
 
 def _install_triggers(request) -> None:

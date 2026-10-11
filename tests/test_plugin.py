@@ -14,7 +14,7 @@
 
 """
 The pytest plugin (bazis_test_utils.plugin), loaded by its entry point in a test project
-run in a subprocess: Django with SQLite, no Bazis package.
+run in a subprocess: Django with SQLite, no Bazis package (one is faked where needed).
 """
 
 import pytest
@@ -48,6 +48,28 @@ def pytest_configure(config):
     management.call_command = call_command
     is_installed = django_apps.apps.is_installed
     django_apps.apps.is_installed = lambda name: name == 'pgtrigger' or is_installed(name)
+"""
+
+
+#: `bazis.core` looks installed, with a throttle module that records its resets
+THROTTLE = """
+import sys
+import types
+
+from django import apps as django_apps
+
+CALLS = []
+#: False: a core without throttle_reset
+WITH_RESET = True
+
+
+def pytest_configure(config):
+    module = types.ModuleType('bazis.core.throttle')
+    if WITH_RESET:
+        module.throttle_reset = lambda: CALLS.append('reset')
+    sys.modules['bazis.core.throttle'] = module
+    is_installed = django_apps.apps.is_installed
+    django_apps.apps.is_installed = lambda name: name == 'bazis.core' or is_installed(name)
 """
 
 
@@ -196,3 +218,46 @@ def test_the_connections_of_other_threads_are_closed(project):
         """
     )
     project.runpytest_subprocess('-p', 'no:cacheprovider').assert_outcomes(passed=2)
+
+
+def test_the_throttles_are_reset_before_each_test(project):
+    """
+    The counts of the throttles of Bazis are reset before each test (not during it: a test
+    of a throttle counts as usual).
+    """
+    project.makeconftest(THROTTLE)
+    project.makepyfile(
+        """
+        import conftest
+
+
+        def test_first():
+            assert conftest.CALLS == ['reset']
+
+
+        def test_second():
+            assert conftest.CALLS == ['reset', 'reset']
+        """
+    )
+    project.runpytest_subprocess('-p', 'no:cacheprovider').assert_outcomes(passed=2)
+
+
+def test_no_throttle_reset_without_bazis(project):
+    """
+    Nothing to reset in a project without `bazis.core` installed, or with a core without
+    `throttle_reset` (Bazis < 2.16).
+    """
+    project.makeconftest(THROTTLE.replace("name == 'bazis.core' or ", ''))
+    project.makepyfile(
+        """
+        import conftest
+
+
+        def test_none():
+            assert conftest.CALLS == []
+        """
+    )
+    project.runpytest_subprocess('-p', 'no:cacheprovider').assert_outcomes(passed=1)
+
+    project.makeconftest(THROTTLE.replace('WITH_RESET = True', 'WITH_RESET = False'))
+    project.runpytest_subprocess('-p', 'no:cacheprovider').assert_outcomes(passed=1)

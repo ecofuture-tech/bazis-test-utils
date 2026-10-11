@@ -3,7 +3,8 @@
 Test helpers shared by the Bazis packages: abstract test models, `factory_boy` factories,
 an API test client (`bazis_test_utils/utils.py`) and a pytest plugin
 (`bazis_test_utils/plugin.py`, entry point `pytest11`: the pgtrigger triggers of the test
-database, `apply_declarations` and the fixture `bazis_declared`). Every Bazis package
+database, `apply_declarations` and the fixture `bazis_declared`, the reset of the throttle
+counts of the core before each test). Every Bazis package
 depends on it through its `test` extra and loads the plugin, so a change here affects all
 their test suites. The plugin imports nothing of Django or Bazis at import time.
 

@@ -265,6 +265,11 @@ def test_the_client_sees_his_tickets(bazis_declared, client_user):
     ...
 ```
 
+- the counts of the request rate limits of Bazis (`bazis.core.throttle`, kept in Redis
+  between the runs) are reset before each test by `throttle_reset()` of the core (Bazis
+  2.16), so a test never inherits a 429 from the tests run before it; within a test the
+  throttles count as usual, so a test of a throttle needs no fixture of its own.
+
 ## Contributing
 
 Contributions are welcome! Here's how you can help:
