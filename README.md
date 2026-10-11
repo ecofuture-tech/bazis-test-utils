@@ -36,6 +36,7 @@ class TestEntityFactory(ParentEntityFactoryAbstract):
   - [Creating Test Models](#creating-test-models)
   - [Using Factories](#using-factories)
   - [Testing FastAPI Endpoints](#testing-fastapi-endpoints)
+  - [Parallel requests](#parallel-requests)
 - [Examples](#examples)
 - [Contributing](#contributing)
 - [License](#license)
@@ -57,6 +58,7 @@ class TestEntityFactory(ParentEntityFactoryAbstract):
 
 - **API testing utilities:**
   - `get_api_client()` — function to create a FastAPI test client with optional authentication
+  - `parallel()` — runs calls (requests) at once in threads, for the tests of the invariants under concurrent requests
 
 
 ## Installation
@@ -153,6 +155,39 @@ def test_authenticated_endpoint(sample_app):
     response = client.get("/api/v1/protected/")
     assert response.status_code == 200
 ```
+
+### Parallel requests
+
+An invariant that must hold under concurrent requests ("no more than 3 steps per memo", a
+unique value) needs a test that sends the requests at once. `parallel(count, func)` calls
+`func` `count` times, `parallel([f1, f2, ...])` each function once, every call in a thread
+of its own: the threads wait for each other before the calls, the results come in the
+order of the calls, each thread closes its database connections when its call is done, and
+the first exception of a call is raised in the test once all have ended. The endpoints see
+only committed data, so such a test uses `transaction=True`:
+
+```python
+import pytest
+from bazis_test_utils.utils import get_api_client, parallel
+
+
+@pytest.mark.django_db(transaction=True)
+def test_no_more_than_3_steps_per_memo(sample_app, memo):
+    def add_step():
+        return get_api_client(sample_app).post('/api/v1/catalog/step/', json_data={
+            'data': {'type': 'catalog.step', 'relationships': {
+                'memo': {'data': {'type': 'catalog.memo', 'id': str(memo.pk)}}}},
+        }).status_code
+
+    assert sorted(parallel(6, add_step)) == [201] * 3 + [422] * 3
+    assert memo.steps.count() == 3
+```
+
+Two paths that create the same item (a custom action and the create route) race with
+`parallel([lambda: by_action(...), lambda: by_create(...)])`: the answers are 2xx, 409 or
+422, never 500. A request that answers 500 raises in the `TestClient` of `get_api_client` (and so in
+`parallel`); to count the statuses of such responses instead, call
+`TestClient(app, raise_server_exceptions=False)` in the functions.
 
 ## Examples
 

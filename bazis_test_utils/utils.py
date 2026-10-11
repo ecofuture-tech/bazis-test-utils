@@ -12,12 +12,64 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import threading
 import typing
+from collections.abc import Callable, Sequence
 
 from fastapi.testclient import TestClient
 
 
 _RequestData = typing.Mapping[str, str | typing.Iterable[str]]
+
+
+def parallel[T](
+    calls: int | Sequence[Callable[[], T]], func: Callable[[], T] | None = None
+) -> list[T]:
+    """
+    Runs calls at once, each in a thread of its own, and returns their results in the
+    order of the calls: `parallel(count, func)` calls `func` `count` times,
+    `parallel([f1, f2, ...])` calls each function once. The threads wait for each other
+    before the calls (a barrier), so the requests of a test of an invariant under
+    concurrent requests really race; each thread closes its database connections when its
+    call is done. The first exception of a call is raised once all the threads have ended.
+    A test that calls the API with it uses `@pytest.mark.django_db(transaction=True)`.
+    """
+    if isinstance(calls, int):
+        if func is None:
+            raise TypeError('parallel(count, func): the function to call is missing')
+        funcs = [func] * calls
+    else:
+        if func is not None:
+            raise TypeError('parallel([f1, f2, ...]) takes the functions in the list only')
+        funcs = list(calls)
+    if not funcs:
+        return []
+
+    from django.db import connections
+
+    barrier = threading.Barrier(len(funcs))
+    results: list = [None] * len(funcs)
+    errors: list[BaseException | None] = [None] * len(funcs)
+
+    def worker(index: int, call: Callable[[], T]) -> None:
+        try:
+            barrier.wait()
+            results[index] = call()
+        except BaseException as e:
+            # raised in the thread of the test, after the others
+            errors[index] = e
+        finally:
+            connections.close_all()
+
+    threads = [threading.Thread(target=worker, args=item) for item in enumerate(funcs)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    for error in errors:
+        if error is not None:
+            raise error
+    return results
 
 
 def get_api_client(app, token: str | None = None):

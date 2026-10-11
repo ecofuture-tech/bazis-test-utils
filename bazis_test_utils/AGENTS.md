@@ -83,6 +83,39 @@ def test_create(sample_app):
   endpoints run in worker threads with their own database connections and do not see the
   uncommitted transaction of a plain `django_db` test.
 
+## Parallel requests
+
+`parallel(count, func)` calls `func` `count` times, `parallel([f1, f2, ...])` calls each
+function once (`bazis_test_utils.utils`), every call in a thread of its own, started
+together (a barrier). It returns the results in the order of the calls; each thread closes
+its database connections when its call is done; the first exception of a call is raised in
+the test once all have ended. Every invariant under concurrent requests (a limit per
+parent, a unique value) gets a test of parallel requests, with
+`@pytest.mark.django_db(transaction=True)`: the invariant holds, and the answers are 201,
+409 or 422, never 500.
+
+```python
+import pytest
+from bazis_test_utils.utils import get_api_client, parallel
+
+@pytest.mark.django_db(transaction=True)
+def test_no_more_than_3_steps_per_memo(sample_app, memo):
+    def add_step():
+        return get_api_client(sample_app).post('/api/v1/catalog/step/', json_data={
+            'data': {'type': 'catalog.step', 'relationships': {
+                'memo': {'data': {'type': 'catalog.memo', 'id': str(memo.pk)}}}},
+        }).status_code
+
+    assert sorted(parallel(6, add_step)) == [201] * 3 + [422] * 3
+    assert memo.steps.count() == 3
+```
+
+- Two paths that create the same item (an action and the create route) race with
+  `parallel([lambda: by_action(...), lambda: by_create(...)])`.
+- A 500 raises in the `TestClient` of `get_api_client`, and so in `parallel`; to assert on
+  the statuses of all the responses, build `TestClient(app,
+  raise_server_exceptions=False)` in the functions.
+
 ## Sample models and factories
 
 - `bazis_test_utils.models_abstract`: `ParentEntityBase`, `ChildEntityBase`,

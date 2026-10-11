@@ -6,6 +6,7 @@ name = "bazis-test-utils"
 summary = "test helpers for Bazis: an API test client, sample models and factories"
 solves = [
     "call the API of a Bazis app in pytest (JSON:API content type, bearer token)",
+    "send requests at once to test an invariant under concurrent requests",
     "sample parent, child, dependent and extended entities with factories",
     "the test database of a Bazis project: the triggers of pgtrigger, the declared roles and workflows, the connections of the worker threads closed after each test (a pytest plugin)",
 ]
@@ -16,6 +17,11 @@ pairs_well = ["bazis"]
 name = "get_api_client"
 import = "bazis_test_utils.utils.get_api_client"
 use_when = "a test client of the FastAPI app, optionally with a bearer token"
+
+[[extension_points]]
+name = "parallel"
+import = "bazis_test_utils.utils.parallel"
+use_when = "a test of an invariant under concurrent requests (a limit per parent, a unique value): parallel(count, func) or parallel([f1, f2, ...]) runs the calls at once in threads and returns their results in order; with @pytest.mark.django_db(transaction=True)"
 
 [[extension_points]]
 name = "ParentEntityBase"
