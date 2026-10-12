@@ -8,7 +8,7 @@ solves = [
     "call the API of a Bazis app in pytest (JSON:API content type, bearer token)",
     "send requests at once to test an invariant under concurrent requests",
     "sample parent, child, dependent and extended entities with factories",
-    "the test database of a Bazis project: the triggers of pgtrigger, the declared roles and workflows, the connections of the worker threads closed after each test (a pytest plugin)",
+    "the test database of a Bazis project: the triggers of pgtrigger, the declared roles, workflows and schedules, the connections of the worker threads closed after each test (a pytest plugin)",
 ]
 requires = []
 pairs_well = ["bazis"]
@@ -51,10 +51,10 @@ use_when = "the factory of the parent model (with the other *FactoryAbstract cla
 [[extension_points]]
 name = "apply_declarations"
 import = "bazis_test_utils.plugin.apply_declarations"
-use_when = "a test applies the roles.py and workflow.py declarations again, as migrate does (the fixture bazis_declared calls it)"
+use_when = "a test applies the roles.py, workflow.py and schedules.py declarations again, as migrate does (the fixture bazis_declared calls it)"
 
 [[pitfalls]]
-text = "the declared roles and workflows are in the test database because migrate (also with --reuse-db) and flush apply them: request the fixture bazis_declared only in a test that changes the declared rows itself"
+text = "the declared roles, workflows and schedules are in the test database because migrate (also with --reuse-db) and flush apply them: request the fixture bazis_declared only in a test that changes the declared rows itself"
 
 [[pitfalls]]
 text = "the API client takes the JSON body as json_data=, not json="

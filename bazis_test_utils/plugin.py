@@ -50,7 +50,10 @@ from importlib.util import find_spec
 import pytest
 
 
-#: the declarations of the Bazis packages: the application and its module of declarations
+#: the declarations of the Bazis packages: the application and its module of declarations.
+#: The package does not depend on Bazis: a module missing from an older package is skipped
+#: (`find_spec`) until the floors of all the packages are bazis-permit 2.9, bazis-statusy 2.9
+#: and bazis-bg 2.6
 DECLARATIONS = (
     ('bazis.contrib.permit', 'bazis.contrib.permit.declare'),
     ('bazis.contrib.statusy', 'bazis.contrib.statusy.declare'),
@@ -136,7 +139,7 @@ def _throttle_reset() -> None:
     try:
         from bazis.core.throttle import throttle_reset
     except ImportError:
-        # Bazis < 2.16: no throttles
+        # Bazis < 2.16: no throttles (removed once the floors of the packages are Bazis 2.16)
         return
     throttle_reset()
 

@@ -275,8 +275,8 @@ This package is used in the sample project in the Bazis core to create standard 
 
 The typical workflow in Bazis packages:
 
-1. Define concrete models in `sample/models.py` by inheriting from abstract base models
-2. Create factories in `sample/factories.py` using abstract factory classes
+1. Define concrete models in the sample app (`sample/entity/models.py`) by inheriting from abstract base models
+2. Create factories in `tests/factories.py` using abstract factory classes
 3. Register factories in `conftest.py` for use across all tests
 4. Use generated fixtures in integration and unit tests
 
