@@ -13,13 +13,10 @@
 # limitations under the License.
 
 import threading
-import typing
 from collections.abc import Callable, Sequence
+from functools import partialmethod
 
 from fastapi.testclient import TestClient
-
-
-_RequestData = typing.Mapping[str, str | typing.Iterable[str]]
 
 
 def parallel[T](
@@ -72,108 +69,67 @@ def parallel[T](
     return results
 
 
-def get_api_client(app, token: str | None = None):
-    class ApiClient:
-        def __init__(self):
-            self.headers = {'Content-Type': 'application/vnd.api+json'}
-            if token:
-                self.headers['Authorization'] = f'Bearer {token}'
+class ApiClient:
+    """
+    The test client of `get_api_client`: the requests send the JSON:API content type (not
+    with `files`, multipart) and the bearer token, if any.
+    """
 
-            self.client = TestClient(app, client=("127.0.0.1", 50000))
+    def __init__(self, app, token: str | None = None):
+        self.headers = {'Content-Type': 'application/vnd.api+json'}
+        if token:
+            self.headers['Authorization'] = f'Bearer {token}'
 
-        def get(self, url: str, params: dict | None = None, headers: dict | None = None):
-            return self.client.get(
-                url,
-                params=params,
-                headers=self.headers | (headers or {}),
-            )
+        self.client = TestClient(app, client=('127.0.0.1', 50000))
 
-        def post(
-            self,
-            url: str,
-            params: dict | None = None,
-            content: dict | None = None,
-            cookies: dict | None = None,
-            data: dict | None = None,
-            json_data: dict | None = None,
-            files: dict | None = None,
-            headers: dict | None = None,
-        ):
-            headers = self.headers | (headers or {})
-            if files:
-                headers.pop('Content-Type', None)
+    def get(self, url: str, params: dict | None = None, headers: dict | None = None):
+        return self.client.get(url, params=params, headers=self.headers | (headers or {}))
 
-            return self.client.post(
-                url,
-                params=params,
-                content=content,
-                data=data,
-                cookies=cookies,
-                json=json_data,
-                headers=headers,
-                files=files,
-            )
+    def _send(
+        self,
+        method: str,
+        url: str,
+        params: dict | None = None,
+        content: dict | None = None,
+        cookies: dict | None = None,
+        data: dict | None = None,
+        json_data: dict | None = None,
+        files: dict | None = None,
+        headers: dict | None = None,
+    ):
+        headers = self.headers | (headers or {})
+        if files:
+            # multipart: the client sets the content type with its boundary
+            headers.pop('Content-Type', None)
 
-        def patch(
-            self,
-            url: str,
-            params: dict | None = None,
-            content: dict | None = None,
-            cookies: dict | None = None,
-            data: dict | None = None,
-            json_data: dict | None = None,
-            files: dict | None = None,
-            headers: dict | None = None,
-        ):
-            headers = self.headers | (headers or {})
-            if files:
-                headers.pop('Content-Type', None)
+        return self.client.request(
+            method,
+            url,
+            params=params,
+            content=content,
+            data=data,
+            cookies=cookies,
+            json=json_data,
+            headers=headers,
+            files=files,
+        )
 
-            return self.client.patch(
-                url,
-                params=params,
-                content=content,
-                data=data,
-                cookies=cookies,
-                json=json_data,
-                headers=headers,
-                files=files,
-            )
+    post = partialmethod(_send, 'POST')
+    patch = partialmethod(_send, 'PATCH')
+    put = partialmethod(_send, 'PUT')
 
-        def delete(self, url: str, params: dict | None = None, headers: dict | None = None):
-            return self.client.delete(url, params=params, headers=self.headers | (headers or {}))
+    def delete(self, url: str, params: dict | None = None, headers: dict | None = None):
+        return self.client.delete(url, params=params, headers=self.headers | (headers or {}))
 
-        def put(
-            self,
-            url: str,
-            params: dict | None = None,
-            content: dict | None = None,
-            cookies: dict | None = None,
-            data: dict | None = None,
-            json_data: dict | None = None,
-            files: dict | None = None,
-            headers: dict | None = None,
-        ):
-            headers = self.headers | (headers or {})
-            if files:
-                headers.pop('Content-Type', None)
+    def options(self, url: str, params: dict | None = None, headers: dict | None = None):
+        return self.client.options(url, params=params, headers=self.headers | (headers or {}))
 
-            return self.client.put(
-                url,
-                params=params,
-                content=content,
-                data=data,
-                cookies=cookies,
-                json=json_data,
-                headers=headers,
-                files=files,
-            )
+    def head(self, url: str, params: dict | None = None, headers: dict | None = None):
+        return self.client.head(url, params=params, headers=self.headers | (headers or {}))
 
-        def options(self, url: str, params: dict | None = None, headers: dict | None = None):
-            return self.client.options(url, params=params, headers=self.headers | (headers or {}))
 
-        def head(self, url: str, params: dict | None = None, headers: dict | None = None):
-            return self.client.head(url, params=params, headers=self.headers | (headers or {}))
-
-    client = ApiClient()
-    return client
+def get_api_client(app, token: str | None = None) -> ApiClient:
+    """
+    A test client of the FastAPI app `app`, with the bearer token `token` if given.
+    """
+    return ApiClient(app, token)
