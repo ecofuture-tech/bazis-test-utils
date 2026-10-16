@@ -17,6 +17,8 @@
 token, a multipart body with the content type of the client.
 """
 
+import json
+
 from fastapi import FastAPI, Request
 
 import pytest
@@ -43,12 +45,14 @@ def test_a_json_body(method):
     client = get_api_client(app, token='token')
     # the parameters keep their positions: the second one is params
     response = getattr(client, method)('/echo/', {'x': '1'}, json_data={'data': None})
-    assert response.json() == {
+    result = response.json()
+    # the spacing of the JSON depends on the version of the HTTP client
+    assert json.loads(result.pop('body')) == {'data': None}
+    assert result == {
         'method': method.upper(),
         'query': {'x': '1'},
         'content_type': 'application/vnd.api+json',
         'authorization': 'Bearer token',
-        'body': '{"data":null}',
     }
 
 
